@@ -458,7 +458,12 @@ private:
     static bool timer_greater(TimerPtr a, TimerPtr b)
     {
       // TODO(alsora): this can cause an error if timers are using different clocks
-      return a->time_until_trigger() > b->time_until_trigger();
+      auto t_a = a->time_until_trigger();
+      auto t_b = b->time_until_trigger();
+
+      if (t_a == t_b) return a->get_timer_id() > b->get_timer_id();
+
+      return t_a > t_b;
     }
     std::vector<TimerPtr> owned_heap_;
   };

@@ -190,6 +190,11 @@ public:
   void
   clear_on_reset_callback();
 
+  /// Return the timer ID.
+  RCLCPP_PUBLIC
+  uint16_t
+  get_timer_id();
+
 protected:
   std::recursive_mutex callback_mutex_;
   // Declare callback before timer_handle_, so on destruction
@@ -204,9 +209,14 @@ protected:
 
   std::atomic<bool> in_use_by_wait_set_{false};
 
+  static inline std::atomic<uint16_t> timer_id_counter_{0};
+
   RCLCPP_PUBLIC
   void
   set_on_reset_callback(rcl_event_callback_t callback, const void * user_data);
+
+private:
+  const uint16_t timer_id_;
 };
 
 using VoidCallbackType = std::function<void ()>;

@@ -34,7 +34,7 @@ TimerBase::TimerBase(
   std::chrono::nanoseconds period,
   rclcpp::Context::SharedPtr context,
   bool autostart)
-: clock_(clock), timer_handle_(nullptr)
+: clock_(clock), timer_handle_(nullptr), timer_id_(++timer_id_counter_)
 {
   if (nullptr == context) {
     context = rclcpp::contexts::get_global_default_context();
@@ -207,6 +207,12 @@ TimerBase::clear_on_reset_callback()
     set_on_reset_callback(nullptr, nullptr);
     on_reset_callback_ = nullptr;
   }
+}
+
+uint16_t
+TimerBase::get_timer_id()
+{
+  return timer_id_;
 }
 
 void
