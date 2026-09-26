@@ -14,6 +14,7 @@
 
 #include "rclcpp/executors/executor_entities_collection.hpp"
 #include "rcpputils/scope_exit.hpp"
+#include "rslcpp_hooks/hooks.hpp"
 
 #include "rclcpp/executors/static_single_threaded_executor.hpp"
 #include "rclcpp/any_executable.hpp"
@@ -164,8 +165,12 @@ bool StaticSingleThreadedExecutor::execute_ready_executables(
   while (auto subscription = wait_result.next_ready_subscription()) {
     auto entity_iter = collection.subscriptions.find(subscription->get_subscription_handle().get());
     if (entity_iter != collection.subscriptions.end()) {
+      const rslcpp::hooks::CallbackInfo hook_info{
+        rslcpp::hooks::EntityKind::SUBSCRIPTION, subscription.get()};
       time_delay_backend_.register_callback_start();
+      rslcpp::hooks::callback_start(hook_info);
       execute_subscription(subscription);
+      rslcpp::hooks::callback_end(hook_info);
       any_ready_executable = true;
       if (spin_once) {return any_ready_executable;}
     }
@@ -187,8 +192,11 @@ bool StaticSingleThreadedExecutor::execute_ready_executables(
         // someone canceled the timer between is_ready and call
         continue;
       }
+      const rslcpp::hooks::CallbackInfo hook_info{rslcpp::hooks::EntityKind::TIMER, timer.get()};
       time_delay_backend_.register_callback_start();
+      rslcpp::hooks::callback_start(hook_info);
       execute_timer(std::move(timer), data);
+      rslcpp::hooks::callback_end(hook_info);
       any_ready_executable = true;
       if (spin_once) {return any_ready_executable;}
     }
@@ -197,8 +205,11 @@ bool StaticSingleThreadedExecutor::execute_ready_executables(
   while (auto client = wait_result.next_ready_client()) {
     auto entity_iter = collection.clients.find(client->get_client_handle().get());
     if (entity_iter != collection.clients.end()) {
+      const rslcpp::hooks::CallbackInfo hook_info{rslcpp::hooks::EntityKind::CLIENT, client.get()};
       time_delay_backend_.register_callback_start();
+      rslcpp::hooks::callback_start(hook_info);
       execute_client(client);
+      rslcpp::hooks::callback_end(hook_info);
       any_ready_executable = true;
       if (spin_once) {return any_ready_executable;}
     }
@@ -207,8 +218,12 @@ bool StaticSingleThreadedExecutor::execute_ready_executables(
   while (auto service = wait_result.next_ready_service()) {
     auto entity_iter = collection.services.find(service->get_service_handle().get());
     if (entity_iter != collection.services.end()) {
+      const rslcpp::hooks::CallbackInfo hook_info{
+        rslcpp::hooks::EntityKind::SERVICE, service.get()};
       time_delay_backend_.register_callback_start();
+      rslcpp::hooks::callback_start(hook_info);
       execute_service(service);
+      rslcpp::hooks::callback_end(hook_info);
       any_ready_executable = true;
       if (spin_once) {return any_ready_executable;}
     }
@@ -218,8 +233,12 @@ bool StaticSingleThreadedExecutor::execute_ready_executables(
     auto entity_iter = collection.waitables.find(waitable.get());
     if (entity_iter != collection.waitables.end()) {
       const auto data = waitable->take_data();
+      const rslcpp::hooks::CallbackInfo hook_info{
+        rslcpp::hooks::EntityKind::WAITABLE, waitable.get()};
       time_delay_backend_.register_callback_start();
+      rslcpp::hooks::callback_start(hook_info);
       waitable->execute(data);
+      rslcpp::hooks::callback_end(hook_info);
       any_ready_executable = true;
       if (spin_once) {return any_ready_executable;}
     }
