@@ -22,6 +22,7 @@
 #include <stdexcept>
 
 #include "rcpputils/scope_exit.hpp"
+#include "rslcpp_hooks/hooks.hpp"
 
 using rclcpp::experimental::TimersManager;
 
@@ -153,8 +154,11 @@ bool TimersManager::execute_head_timer()
       // someone canceled the timer between is_ready and call
       return false;
     }
+    const rslcpp::hooks::CallbackInfo hook_info{rslcpp::hooks::EntityKind::TIMER, head_timer.get()};
     time_delay_backend_.register_callback_start();
+    rslcpp::hooks::callback_start(hook_info);
     head_timer->execute_callback(data);
+    rslcpp::hooks::callback_end(hook_info);
     timers_heap.heapify_root();
     weak_timers_heap_.store(timers_heap);
   }
@@ -172,8 +176,12 @@ void TimersManager::execute_ready_timer(
     ready_timer = weak_timers_heap_.get_timer(timer_id);
   }
   if (ready_timer) {
+    const rslcpp::hooks::CallbackInfo hook_info{
+      rslcpp::hooks::EntityKind::TIMER, ready_timer.get()};
     time_delay_backend_.register_callback_start();
+    rslcpp::hooks::callback_start(hook_info);
     ready_timer->execute_callback(data);
+    rslcpp::hooks::callback_end(hook_info);
   }
 }
 

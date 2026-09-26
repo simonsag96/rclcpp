@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "rcpputils/scope_exit.hpp"
+#include "rslcpp_hooks/hooks.hpp"
 
 using namespace std::chrono_literals;
 
@@ -292,8 +293,12 @@ EventsExecutor::execute_event(const ExecutorEvent & event)
         }
         if (client) {
           for (size_t i = 0; i < event.num_events; i++) {
+            const rslcpp::hooks::CallbackInfo hook_info{
+              rslcpp::hooks::EntityKind::CLIENT, client.get()};
             time_delay_backend_.register_callback_start();
+            rslcpp::hooks::callback_start(hook_info);
             execute_client(client);
+            rslcpp::hooks::callback_end(hook_info);
           }
         }
 
@@ -310,8 +315,12 @@ EventsExecutor::execute_event(const ExecutorEvent & event)
         }
         if (subscription) {
           for (size_t i = 0; i < event.num_events; i++) {
+            const rslcpp::hooks::CallbackInfo hook_info{
+              rslcpp::hooks::EntityKind::SUBSCRIPTION, subscription.get()};
             time_delay_backend_.register_callback_start();
+            rslcpp::hooks::callback_start(hook_info);
             execute_subscription(subscription);
+            rslcpp::hooks::callback_end(hook_info);
           }
         }
         break;
@@ -327,8 +336,12 @@ EventsExecutor::execute_event(const ExecutorEvent & event)
         }
         if (service) {
           for (size_t i = 0; i < event.num_events; i++) {
+            const rslcpp::hooks::CallbackInfo hook_info{
+              rslcpp::hooks::EntityKind::SERVICE, service.get()};
             time_delay_backend_.register_callback_start();
+            rslcpp::hooks::callback_start(hook_info);
             execute_service(service);
+            rslcpp::hooks::callback_end(hook_info);
           }
         }
 
@@ -352,8 +365,12 @@ EventsExecutor::execute_event(const ExecutorEvent & event)
         if (waitable) {
           for (size_t i = 0; i < event.num_events; i++) {
             const auto data = waitable->take_data_by_entity_id(event.waitable_data);
+            const rslcpp::hooks::CallbackInfo hook_info{
+              rslcpp::hooks::EntityKind::WAITABLE, waitable.get()};
             time_delay_backend_.register_callback_start();
+            rslcpp::hooks::callback_start(hook_info);
             waitable->execute(data);
+            rslcpp::hooks::callback_end(hook_info);
           }
         }
         break;
